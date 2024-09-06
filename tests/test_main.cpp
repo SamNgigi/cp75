@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 TEST(HelloWorld, TestSetup) {
   EXPECT_STREQ("Hello World", "Hello World");

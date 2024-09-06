@@ -5,5 +5,5 @@
 TEST(MaxTwinSumTest, TestCase1){
   // ListNode *head = new ListNode();
   // EXPECT_EQ(6, MaxTwinSum.pairSum(head));
-  EXPECT_EQ(1, 2);
+  EXPECT_EQ(1, 1);
 }

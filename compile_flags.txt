@@ -1,0 +1,7 @@
+/std:c++23
+-I./include
+-I./src
+-I./third_party/include
+-IC:/Users/samtn/vcpkg/installed/x64-windows/include
+/W4
+/EHsc
