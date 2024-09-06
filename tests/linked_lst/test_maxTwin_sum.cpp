@@ -1,5 +1,5 @@
-#include <iostream>
 #include <gtest/gtest.h>
+#include <iostream>
 // #include "linked_list/med_maxTwin_sum.h"
 
 TEST(MaxTwinSumTest, TestCase1){
