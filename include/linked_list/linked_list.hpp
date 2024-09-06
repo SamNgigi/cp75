@@ -5,6 +5,7 @@
 #include <vector>
 #include <functional>
 
+
 class LinkedList{
   private:
   struct Node{
@@ -35,9 +36,30 @@ public:
   // Finding middle element
   int find_middle();
   
+  // Removing first node/element in a linked list;
+  int pop_front();
+
+  // Removing last node/element in a linked list;
+  int pop_back();
+
+  // Insert node at x with value y
+  void insert(size_t position, int val);
+
+  // Removing a node with a provided value;
+  void remove(int val);
+
+
   // Additional Useful Methods
   size_t get_size() const;
+  // Checking whether a linked list is empty
+  bool isEmpty() const;
+  // Clearing/Emptying the linked list;
+  void clear();
+  // Checking if linked list has node with val provided
+  bool contains(int val) const;
+
   std::vector<int> to_vector() const;
+
 };
 
 
