@@ -58,6 +58,12 @@ public:
   // Checking if linked list has node with val provided
   bool contains(int val) const;
 
+  // Sorting the list. Basic implementation using converting linked list to vector and the sorting;
+  void sortv1();
+
+  // Merging two linked list
+  void merge(LinkedList& other);
+
   std::vector<int> to_vector() const;
 
 };

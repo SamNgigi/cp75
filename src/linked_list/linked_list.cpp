@@ -1,5 +1,6 @@
 #include "linked_list/linked_list.hpp"
 #include <stdexcept>
+#include <algorithm>
 
 void LinkedList::push_front(int value){
   auto new_node = std::make_unique<Node>(value);
@@ -153,3 +154,23 @@ std::vector<int> LinkedList::to_vector() const {
   return res;
 }
 
+void LinkedList::sortv1(){
+  std::vector<int> res = to_vector();
+  std::sort(res.begin(), res.end());
+  clear();
+  for(int i : res) push_back(i);
+  return;
+}
+
+void LinkedList::merge(LinkedList& other){
+  if(!other.head) return;
+  if(!head) {head = std::move(other.head); return;}
+  Node *current = head.get();
+  while(current->next){
+    current = current->next.get();
+  }
+  current->next = std::move(other.head);
+  size += other.size;
+  other.size = 0;
+  return;
+}
