@@ -7,7 +7,7 @@
 
 
 class LinkedList{
-  private:
+protected:
   struct Node{
     int val;
     std::unique_ptr<Node> next;
@@ -22,6 +22,8 @@ class LinkedList{
 public:
   LinkedList(): head(nullptr), size(0) {}
   ~LinkedList() = default;
+
+
 
   // Adding new Linked List Node
   void push_front(int value);
