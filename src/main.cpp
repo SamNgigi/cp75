@@ -55,8 +55,8 @@ int main(int argc, char* argv[]){
 
 void displayMenu() {
     std::cout << "LinkedList Practice Menu:\n";
-    std::cout << "1. push_front\n";
-    std::cout << "2. push_back\n";
+    std::cout << "push_front\n";
+    std::cout << "push_back\n";
     std::cout << "t. Run tests\n";
     std::cout << "q. Quit\n";
     std::cout << "Choose a method to implement (1-10) 't' to run tests and exit, or 'q' to quit: ";
