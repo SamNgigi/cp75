@@ -1,9 +1,13 @@
+#include <ios>
 #include <iostream>
 #include <string>
 #include <vector>
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
+#include <limits>
+#include <filesystem>
+#include <regex>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -14,18 +18,37 @@
 
 #include "linked_list/linked_list.hpp"
 
+
+
 // Function prototypes
 void displayMenu();
 std::string getMethodChoice();
 void editMethod(const std::string& method);
 bool runTests();
 void clearScreen();
-void openEditor(const std::string& filename);
+void openEditor(const std::string& filename, int cursorLine);
 
 int main(){
+    
+    while(true){
+        // clearScreen();
+        displayMenu();
+        std::string choice = getMethodChoice();
 
-  
-  return 0;
+        if(choice == "q"){
+            std::cout << "Thanks for practicing! Goodbye.\n";
+            break;
+        }
+        
+        editMethod(choice);
+
+        if(runTests()) {
+            std::cout << "All tests passed! Press Enter to continue...";
+            std::cin.get();
+        }
+    }
+    
+    return 0;
 }
 
 void displayMenu() {
@@ -39,24 +62,45 @@ void displayMenu() {
 
 std::string getMethodChoice() {
     std::string choice;
-    std::getline(std::cin >> std::ws, choice);
+    std::cin >> choice;
+    // We wrap the cin.ignore with pragma push undef & pop because of the predefined max macro on window.h
+    #pragma push_macro("max")
+    #undef max
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    #pragma pop_macro("max")
     return choice;
 }
 
 void editMethod(const std::string& method) {
-    std::string filename = "linked_list.cpp";
-    std::string tempFilename = "temp_" + filename;
-    std::ifstream inFile(filename);
-    std::ofstream outFile(tempFilename);
+    std::filesystem::path sourcePath =  "./src/linked_list/linked_list.cpp";
+    std::filesystem::path tempPath = sourcePath.parent_path() / std::filesystem::path("temp_" + sourcePath.filename().string());
+
+    std::ifstream inFile(sourcePath);
+    std::ofstream outFile(tempPath);
+
+    if(!inFile.is_open()){
+        std::cerr << "Error: Unable to open source file " << sourcePath << std::endl;
+        return;
+    }
     
+    if(!outFile.is_open()){
+        std::cerr << "Error: Unable to create temporary file " << tempPath << std::endl;
+    }
+        
     std::string line;
     bool methodFound = false;
+    int lineCount = 0;
+    int methodStartLine = 0;
+    std::regex methodRegex(method + R"(\s*\([^)]*\)\s*\{)");
+
     while (std::getline(inFile, line)) {
-        if (line.find(method + "(") != std::string::npos) {
+        lineCount++;
+        if (std::regex_search(line,methodRegex)) {
             methodFound = true;
-            outFile << line << "\n{\n";
+            methodStartLine = lineCount + 1; // Position of cursor inside the function body
+            outFile << line << "\n";
             outFile << "    // TODO: IMPLEMENT " << method << " METHOD HERE\n";
-            outFile << "    // DESCRIPTION: [Brief description of what the method should do]\n";
+            outFile << "    // DESCRIPTION: [Delete this comment and replace with implementation]\n";
             while (std::getline(inFile, line) && line.find("}") == std::string::npos) {
                 // Skip the existing implementation
             }
@@ -71,15 +115,16 @@ void editMethod(const std::string& method) {
     
     if (!methodFound) {
         std::cout << "Method not found in the file.\n";
+        std::filesystem::remove(tempPath);
         return;
     }
     
     // Open the file in Neovim
-    openEditor(tempFilename);
+    openEditor(tempPath.string(), methodStartLine);
     
     // Replace the original file with the edited temp file
-    std::remove(filename.c_str());
-    std::rename(tempFilename.c_str(), filename.c_str());
+    std::filesystem::remove(sourcePath);
+    std::filesystem::rename(tempPath,sourcePath); 
 }
 
 bool runTests() {
@@ -104,14 +149,17 @@ void clearScreen() {
     #endif
 }
 
-void openEditor(const std::string& filename) {
+void openEditor(const std::string& filename, int cursorLine) {
     #ifdef _WIN32
         // For Windows using GitBash and Neovim
-        std::string command = "bash -c \"nvim '" + filename + "'\"";
-        system(command.c_str());
+        std::string command = "bash -c \"nvim '+call cursor(" + std::to_string(cursorLine) + ",0)' '" + filename + "'\"";
     #else
-        std::string editor = std::getenv("EDITOR") ? std::getenv("EDITOR") : "vim";
-        std::string command = editor + " " + filename;
-        system(command.c_str());
+        std::string editor = std::getenv("EDITOR") ? std::getenv("EDITOR") : "nvim";
+        command = editor + " '+call cursor(" + std::to_string(cursorLine) + ",5)' '" + filename + "'";        system(command.c_str());
     #endif
+
+    system(command.c_str());
 }
+
+
+

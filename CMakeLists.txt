@@ -14,7 +14,10 @@ message("Project Name: ${PROJECT_NAME}")
 
 # Set the C++ Standard
 set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Print compiler version
+message(STATUS "CMAKE_CXX_COMPILER_VERSION: ${CMAKE_CXX_COMPILER_VERSION}")
 
 # Add include directories
 include_directories(include)
