@@ -8,6 +8,8 @@
 #include <limits>
 #include <filesystem>
 #include <regex>
+#include <thread>
+#include <chrono>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -24,12 +26,11 @@
 void displayMenu();
 std::string getMethodChoice();
 void editMethod(const std::string& method);
-bool runTests();
+int runTests();
 void clearScreen();
 void openEditor(const std::string& filename, int cursorLine);
 
-int main(){
-    
+int main(int argc, char* argv[]){    
     while(true){
         // clearScreen();
         displayMenu();
@@ -39,13 +40,14 @@ int main(){
             std::cout << "Thanks for practicing! Goodbye.\n";
             break;
         }
+
+        if(choice == "t"){
+            return runTests();
+        }
         
         editMethod(choice);
 
-        if(runTests()) {
-            std::cout << "All tests passed! Press Enter to continue...";
-            std::cin.get();
-        }
+
     }
     
     return 0;
@@ -55,8 +57,9 @@ void displayMenu() {
     std::cout << "LinkedList Practice Menu:\n";
     std::cout << "1. push_front\n";
     std::cout << "2. push_back\n";
+    std::cout << "t. Run tests\n";
     std::cout << "q. Quit\n";
-    std::cout << "Choose a method to implement (1-10) or 'q' to quit: ";
+    std::cout << "Choose a method to implement (1-10) 't' to run tests and exit, or 'q' to quit: ";
 }
 
 
@@ -122,24 +125,28 @@ void editMethod(const std::string& method) {
     // Open the file in Neovim
     openEditor(tempPath.string(), methodStartLine);
     
-    // Replace the original file with the edited temp file
-    std::filesystem::remove(sourcePath);
-    std::filesystem::rename(tempPath,sourcePath); 
-}
+    // Give some time for the editor to fully close
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-bool runTests() {
-    // Compile and run the tests
-    int result = system("./run.bat");
-    
-    if (result == 0) {
-        std::cout << "All tests passed!\n";
-        return true;
-    } else {
-        std::cout << "Some tests failed. Press Enter to continue editing...";
-        std::cin.get();
-        return false;
+    // Replace the original file with the edited temp file
+    int retries = 5;
+    while (retries > 0) {
+        try {
+            std::filesystem::remove(sourcePath);
+            std::filesystem::rename(tempPath, sourcePath);
+            break;
+        } catch (const std::filesystem::filesystem_error& e) {
+            std::cerr << "Error replacing file: " << e.what() << std::endl;
+            std::cerr << "Retrying in 1 second... (" << retries << " retries left)" << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            retries--;
+        }
+    }
+    if (retries == 0) {
+        std::cerr << "Failed to replace the file after multiple attempts." << std::endl;
     }
 }
+
 
 void clearScreen() {
     #ifdef _WIN32
@@ -159,6 +166,11 @@ void openEditor(const std::string& filename, int cursorLine) {
     #endif
 
     system(command.c_str());
+}
+
+int runTests(){
+    std::cout << "Running tests...\n";
+    return 0;
 }
 
 

@@ -158,7 +158,7 @@ void LinkedList::sortv1(){
   std::vector<int> res = to_vector();
   std::sort(res.begin(), res.end());
   clear();
-  for(int i : res) push_back(i);
+  for(int i: res) push_back(i);
   return;
 }
 
