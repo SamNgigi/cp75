@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <fstream>
 #include <regex>
+#include <stdexcept>
 
 #include "game_play/game_play.hpp"
 
@@ -33,6 +34,16 @@ std::string getMethodChoice(){
     #pragma pop_macro("max")
 
     return choice;
+}
+
+std::filesystem::path findFile(const std::string &filename){
+    // Get the current working directory
+    std::filesystem::path currentPath = std::filesystem::current_path();
+
+    // Navigate to the src directory
+
+
+    return currentPath;
 }
 
 void editMethod(const std::string& method){
