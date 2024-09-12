@@ -3,9 +3,11 @@
 #include <string>
 #include <istream>
 #include <fstream>
+#include <filesystem>
 
 #include "game_play/game_play.hpp"
 
+namespace fs = std::filesystem;
 
 class MockCin : public std::istringstream {
 public:
@@ -25,16 +27,24 @@ public:
 class GamePlayTests : public ::testing::Test{
 protected:
   void SetUp() override {
+    
+    // Create a test file
+    testFile = "./src/linked_list/temp_test.cpp";
+    std::ofstream(testFile) << "void test_method(){\n    // Original content\n}\n";
+
     // Redirecting cin to our stringstream
     oldCoutBuffer = std::cout.rdbuf();
     std::cout.rdbuf(mockCout.rdbuf());
   }
 
   void TearDown() override {
+
+    fs::remove(testFile);
+
     // Restoring original buffer
     std::cout.rdbuf(oldCoutBuffer);
   }
-
+  fs::path testFile;
   MockCout mockCout;
   std::streambuf* oldCoutBuffer;
 };
@@ -56,34 +66,35 @@ TEST_F(GamePlayTests, TestGetMethodChoiceReturnsUserInput){
   std::cin.rdbuf(std::cin.rdbuf()); // Resetting Cin
 }
 
-TEST_F(GamePlayTests, TestEditMethodModifiesFile){
-  // Creating a temp file for testing
-  std::string tempFileName = "temp_test_file.cpp";
-  std::ofstream tempFile(tempFileName);
-  tempFile << "void testMethod(){\n   // Original content\n}\n";
-  tempFile.close();
 
-  // Mocking the openEditor function
-  auto openEditorMock = [](const std::string& filename, int cursorLine) {
-    std::ofstream file(filename, std::ios::app);
-    file << "   // New content\n";
-    file.close();
-  };
+TEST_F(GamePlayTests, TestFindFile) {
+    // Test finding an existing file
+    EXPECT_EQ(findFile("linked_list.cpp").filename(), "linked_list.cpp");
+    EXPECT_EQ(findFile("binary_tree.cpp").filename(), "binary_tree.cpp");
 
-  // Calling editMethod with our mock
-  editMethod("testMethod");
+    // Test that it doesn't find files in game_play directory
+    EXPECT_THROW(findFile("game_play.cpp"), std::runtime_error);
 
-  // Checking if file was modified
-  std::ifstream modifiedFile(tempFileName);
-  std::string content((std::istreambuf_iterator<char>(modifiedFile)),
-                      std::istreambuf_iterator<char>());
-  EXPECT_THAT(content, testing::HasSubstr("// New content"));
-
-  // Cleaning up
-  modifiedFile.close();
-  std::remove(tempFileName.c_str());
-
+    // Test finding a non-existent file
+    EXPECT_THROW(findFile("nonexistent.cpp"), std::runtime_error);
 }
+
+TEST_F(GamePlayTests, TestEditMethod) {
+
+    // Edit the method
+    editMethod("test_method", "temp_test");
+
+    // Read the edited file
+    std::ifstream file(testFile);
+    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+
+    // Check if the content has been modified as expected
+    EXPECT_THAT(content, testing::HasSubstr( "void test_method(){\n    // TODO: IMPLEMENT test_method METHOD HERE"));
+    EXPECT_THAT(content, testing::Not(testing::HasSubstr("Original content")));
+}
+
+
 
 
 
