@@ -6,6 +6,7 @@
 #include <fstream>
 #include <regex>
 #include <stdexcept>
+#include <functional>
 
 #include "game_play/game_play.hpp"
 
@@ -83,7 +84,23 @@ fs::path findFile(const std::string &filename){
     throw std::runtime_error("File not found: " + filename);
 }
 
-void editMethod(const std::string& method, const std::string& filename){
+void openEditor(const std::string& filename, 
+                int cursorLine, 
+                std::function<int(const char*)> systemCall) {
+    #ifdef _WIN32
+        // For Windows using GitBash and Neovim
+        std::string command = "bash -c \"nvim '+call cursor(" + std::to_string(cursorLine) + ",0)' '" + filename + "'\"";
+    #else
+        std::string editor = std::getenv("EDITOR") ? std::getenv("EDITOR") : "nvim";
+        command = editor + " '+call cursor(" + std::to_string(cursorLine) + ",5)' '" + filename + "'";        system(command.c_str());
+    #endif  
+    systemCall(command.c_str());
+}
+
+
+void editMethod(const std::string& method, 
+                const std::string& filename,
+                std::function<void(const std::string&, int, std::function<int(const char*)>)> editorFunc){
     OpenEditorSys openEditorSys;
     fs::path sourcePath;
 
@@ -140,18 +157,13 @@ void editMethod(const std::string& method, const std::string& filename){
     }
     
     // Open the file in Neovim
-    openEditor(tempPath.string(), methodStartLine, openEditorSys);
+    editorFunc(tempPath.string(), methodStartLine, std::system);
     
     // Replace the original file with the edited temp file
     std::filesystem::remove(sourcePath);
     std::filesystem::rename(tempPath,sourcePath); 
 
     return;
-}
-
-void openEditor(const std::string& filename, int cursorLine, const SystemInterface& system) {
-    std::string command = buildEditorCommands(filename, cursorLine);
-    system.executeCommand(command);
 }
 
 

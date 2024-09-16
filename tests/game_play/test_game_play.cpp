@@ -81,8 +81,19 @@ TEST_F(GamePlayTests, TestFindFile) {
 
 TEST_F(GamePlayTests, TestEditMethod) {
 
-    // Edit the method
-    editMethod("test_method", "temp_test");
+    std::string capturedFilename = "";
+    int capturedCursorLine = 0;
+    
+    auto mockEditorFunc = [&](const std::string& filename,
+                              int cursorLine, std::function<int(const char*)>){
+      capturedFilename = filename;
+      capturedCursorLine = cursorLine;
+    };
+     
+    editMethod("test_method", "temp_test", mockEditorFunc);
+
+    EXPECT_THAT(capturedFilename, testing::EndsWith("temp_test.cpp"));
+    EXPECT_GT(capturedCursorLine, 0);
 
     // Read the edited file
     std::ifstream file(testFile);
