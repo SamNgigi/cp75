@@ -11,14 +11,13 @@ void LinkedList::push_front(int value){
 
 void LinkedList::push_back(int value){
   std::unique_ptr<Node> new_node = std::make_unique<Node>(value);
-  if(!head){
-    head = std::move(new_node);
-  } else {
-    Node* current = head.get();
+  if(!head) head = std::move(new_node);
+  else {
+    Node *current = head.get();
     while(current->next){
       current = current->next.get();
     }
-    current->next = std::move(new_node); 
+    current->next = std::move(new_node);
   }
   size++;
 }

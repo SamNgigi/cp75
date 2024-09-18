@@ -139,10 +139,20 @@ void editMethod(const std::string& method,
             outFile << line << "\n";
             outFile << "    // TODO: IMPLEMENT " << method << " METHOD HERE\n";
             outFile << "    // DESCRIPTION: [Delete this comment and replace with implementation]\n";
-            while (std::getline(inFile, line) && line.find("}") == std::string::npos) {
-                // Skip the existing implementation
+            
+            size_t braceCount = 1; // Count of open braces
+            while (std::getline(inFile, line)) {
+                // Skip the existing implementation body
+                braceCount += std::count(line.begin(), line.end(), '{');
+                braceCount -= std::count(line.begin(), line.end(), '}');
+
+                if(braceCount == 0){
+                    // We've found the matching closing brace
+                    outFile << "}\n";
+                    break;
+                }
             }
-            outFile << "}\n";
+            
         } else {
             outFile << line << "\n";
         }

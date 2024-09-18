@@ -3,19 +3,23 @@ setlocal enabledelayedexpansion
 for %%i in ("%~dp0.") do set "dir_name=%%~ni"
 
 
-set "action=%1"
 set "exe_path=build\Debug\%dir_name%.exe"
 set "test_exe_path=build\Debug\%dir_name%_test.exe"
 
-if "%action%"=="build" goto :build
-if "%action%"=="run" goto :run
-if "%action%"=="test" goto :test
-if "%action%"=="clean" goto :clean
-if "%action%"=="run_tests_new_window" goto :run_tests_new_window
-if "%action%"=="" goto :run
+if "%1"=="" goto :run
 
-echo Invalid action. Use 'build', 'run', 'test', 'clean', or 'run_tests_new_window'.
-exit /b 1
+:process_actions
+if "%1"=="" goto :eof
+if "%1"=="build" goto :build
+if "%1"=="run" goto :run
+if "%1"=="test" goto :test
+if "%1"=="clean" goto :clean
+if "%1"=="run_tests_new_window" goto :run_tests_new_window
+
+echo Invalid action: %1
+echo Valid actions are: build, run, test, clean, run_tests_new_window
+shift
+goto :process_actions
 
 
 
@@ -36,8 +40,8 @@ if !errorlevel! neq 0 (
     exit /b !errorlevel!
 )
 echo Clean completed successfully.
-goto :eof
-
+shift
+goto :process_actions
 
 :build
 if not exist build mkdir build
@@ -55,7 +59,9 @@ if !errorlevel! neq 0 (
 )
 cd ..
 echo Build completed successfully.
-goto :eof
+shift
+goto :process_actions
+
 
 :run
 if not exist "%exe_path%" (
@@ -65,7 +71,9 @@ if not exist "%exe_path%" (
 )
 echo Running executable...
 "%exe_path%"
-exit /b !errorlevel!
+shift
+goto :process_actions
+
 
 :test
 echo Performing clean build and running tests...
@@ -75,9 +83,10 @@ call :build
 if !errorlevel! neq 0 exit /b !errorlevel!
 echo Running tests...
 "%test_exe_path%"
-exit /b !errorlevel!
-
+shift
+goto :process_actions
 
 :run_tests_new_window
 start "Running Tests" cmd /c ""%~f0" test & pause"
-exit /b 0
+shift
+goto :process_actions
