@@ -167,20 +167,3 @@ void editMethod(const std::string& method,
     return;
 }
 
-
-// New function to build the editor command
-std::string buildEditorCommands(const std::string& filename, int cursorLine) {
-    #ifdef _WIN32
-        // For Windows using GitBash and Neovim
-        std::string command = "bash -c \"nvim '+call cursor(" + std::to_string(cursorLine) + ",0)' '" + filename + "'\"";
-    #else
-        std::string editor = std::getenv("EDITOR") ? std::getenv("EDITOR") : "nvim";
-        command = editor + " '+call cursor(" + std::to_string(cursorLine) + ",5)' '" + filename + "'";        system(command.c_str());
-    #endif
-    return command;
-}
-
-
-
-
-
