@@ -10,21 +10,6 @@
 namespace fs = std::filesystem;
 
 
-
-class SystemInterface{
-public:
-  virtual ~SystemInterface() = default;
-  virtual void executeCommand(const std::string &command) const = 0;
-};
-
-
-class OpenEditorSys : public SystemInterface {
-  void executeCommand(const std::string &command) const override {
-    system(command.c_str());
-  }
-};
-
-
 int init_game();
 void clearScreen();
 void displayMenu();
@@ -39,6 +24,6 @@ void editMethod(const std::string& method,
                 std::function<void(const std::string&, int, std::function<int(const char*)>)> editorFunc = openEditor);
 
 std::string buildEditorCommands(const std::string& filename, int cursorLine);
-int runTests();
+int runCommand(const std::string& command, int maxRetries = 5);
 
 #endif // GAME_PLAY_HPP

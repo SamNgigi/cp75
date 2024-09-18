@@ -6,6 +6,9 @@ get_filename_component(PROJECT_NAME ${CMAKE_SOURCE_DIR} NAME)
 # Set project name
 project(${PROJECT_NAME})
 
+# Defining project name as preprocessor macro
+add_definitions(-DPROJECT_NAME="${PROJECT_NAME}")
+
 # Enable generation of compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 

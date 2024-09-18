@@ -19,10 +19,7 @@ public:
   MockCout(){}
 };
 
-class MockSystem: public SystemInterface {
-public:
-  MOCK_METHOD(void, executeCommand, (const std::string &command), (const override));
-};
+
 
 class GamePlayTests : public ::testing::Test{
 protected:

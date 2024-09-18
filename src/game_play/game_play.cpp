@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <functional>
 
+
 #include "game_play/game_play.hpp"
 
 
@@ -28,7 +29,8 @@ int init_game(){
         }
 
         if(choice == "t"){
-            return runTests();
+            std::cout << "Exiting game to run tests. A new window will open with test results\n";
+            return 42;
         }
         
         editMethod(choice);
@@ -101,7 +103,6 @@ void openEditor(const std::string& filename,
 void editMethod(const std::string& method, 
                 const std::string& filename,
                 std::function<void(const std::string&, int, std::function<int(const char*)>)> editorFunc){
-    OpenEditorSys openEditorSys;
     fs::path sourcePath;
 
     try {
@@ -179,13 +180,6 @@ std::string buildEditorCommands(const std::string& filename, int cursorLine) {
     return command;
 }
 
-
-
-
-int runTests(){
-    std::cout << "Running tests...\n";
-    return 0;
-}
 
 
 

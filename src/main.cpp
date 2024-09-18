@@ -14,26 +14,13 @@ int main(){
 
     std::cout << "Hello World\n";
     
-    while(true){
-        clearScreen();
-        displayMenu();
-        std::string choice = getMethodChoice();
-
-        if(choice == "q"){
-            std::cout << "Thanks for practicing! Goodbye.\n";
-            break;
-        }
-
-        if(choice == "t"){
-            return runTests();
-        }
-        
-        editMethod(choice);
-
-
+    int result = init_game();
+    if(result == 42) {
+        // The game loop exited with a request to run tests
+        std::system("start cmd /c \"run.bat run_tests_new_window\"");
+        return 0;
     }
-    return 0;
+    return result;
 
 }
-
 
