@@ -3,18 +3,26 @@
 
 #include <cstdlib>
 #include <string>
+#include <vector>
+#include <map>
 #include <filesystem>
 #include <functional>
 
 
 namespace fs = std::filesystem;
 
+struct MethodInfo {
+  std::string name;
+  std::string filename;
+  std::string selector;
+};
 
 int init_game();
 void clearScreen();
-void displayMenu();
+std::map<std::string, std::vector<MethodInfo>> getAvailableMethods();
+void displayMenu(const std::map<std::string, std::vector<MethodInfo>> &methodsByFile);
+MethodInfo getMethodChoice(const std::map<std::string, std::vector<MethodInfo>>& methodsByFile);
 fs::path findFile(const std::string &filename);
-std::string getMethodChoice();
 void openEditor(const std::string& filename, 
                 int cursorLine, 
                 std::function<int(const char*)> systemCall = std::system);

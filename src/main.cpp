@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iostream>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -13,7 +14,7 @@
 int main(){
 
     std::cout << "Hello World\n";
-    
+
     int result = init_game();
     if(result == 42) {
         // The game loop exited with a request to run tests

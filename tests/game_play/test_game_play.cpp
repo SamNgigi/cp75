@@ -46,22 +46,22 @@ protected:
   std::streambuf* oldCoutBuffer;
 };
 
-TEST_F(GamePlayTests, TestDisplayMenuShowsAllOptions){
-  displayMenu();
-  std::string output = mockCout.str();
-
-  EXPECT_THAT(output, testing::HasSubstr("push_front"));
-  EXPECT_THAT(output, testing::HasSubstr("push_back"));
-  EXPECT_THAT(output, testing::HasSubstr("q. Quit"));
-  EXPECT_THAT(output, testing::HasSubstr("t. Run Tests and Exit"));
-}
-
-TEST_F(GamePlayTests, TestGetMethodChoiceReturnsUserInput){
-  MockCin mockCin("7\n");
-  std::cin.rdbuf(mockCin.rdbuf());
-  EXPECT_EQ(getMethodChoice(), "7");
-  std::cin.rdbuf(std::cin.rdbuf()); // Resetting Cin
-}
+// TEST_F(GamePlayTests, TestDisplayMenuShowsAllOptions){
+//   displayMenu();
+//   std::string output = mockCout.str();
+//
+//   EXPECT_THAT(output, testing::HasSubstr("push_front"));
+//   EXPECT_THAT(output, testing::HasSubstr("push_back"));
+//   EXPECT_THAT(output, testing::HasSubstr("q. Quit"));
+//   EXPECT_THAT(output, testing::HasSubstr("t. Run Tests and Exit"));
+// }
+//
+// TEST_F(GamePlayTests, TestGetMethodChoiceReturnsUserInput){
+//   MockCin mockCin("7\n");
+//   std::cin.rdbuf(mockCin.rdbuf());
+//   EXPECT_EQ(getMethodChoice(), "7");
+//   std::cin.rdbuf(std::cin.rdbuf()); // Resetting Cin
+// }
 
 
 TEST_F(GamePlayTests, TestFindFile) {

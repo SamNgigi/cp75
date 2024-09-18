@@ -1,12 +1,16 @@
 #include <ios>
 #include <iostream>
 #include <string>
+#include <vector>
+#include <map>
 #include <limits>
 #include <filesystem>
 #include <fstream>
 #include <regex>
 #include <stdexcept>
 #include <functional>
+#include <algorithm>
+#include <iomanip>
 
 
 #include "game_play/game_play.hpp"
@@ -20,20 +24,19 @@ int init_game(){
     
     while(true){
         clearScreen();
-        displayMenu();
-        std::string choice = getMethodChoice();
+        auto methodsByFile = getAvailableMethods();
+        MethodInfo chosenMethod = getMethodChoice(methodsByFile);
 
-        if(choice == "q"){
+        if(chosenMethod.selector == "q"){
             std::cout << "Thanks for practicing! Goodbye.\n";
             break;
-        }
-
-        if(choice == "t"){
+        }else if(chosenMethod.selector == "t"){
             std::cout << "Exiting game to run tests. A new window will open with test results\n";
             return 42;
+        } else {
+            editMethod(chosenMethod.name, chosenMethod.filename, openEditor);
         }
         
-        editMethod(choice);
 
 
     }
@@ -44,28 +47,102 @@ void clearScreen(){
     return;
 }
 
-void displayMenu(){
+std::map<std::string, std::vector<MethodInfo>> getAvailableMethods() {
+    std::map<std::string, std::vector<MethodInfo>> methodsByFile;
+    
+    std::regex methodRegex(R"((?:^|\n)\s*(?:virtual\s+)?(?:static\s+)?(?:inline\s+)?(?:explicit\s+)?(?:constexpr\s+)?(?:(?:const\s+)?(?:volatile\s+)?(?:\w+::)*\w+(?:\s*<[^>]*>)?(?:\s*\*|\s*&)?\s+)(?:\w+::)?(\w+)\s*\([^)]*\)(?:\s*const)?(?:\s*noexcept)?(?:\s*override)?(?:\s*final)?(?:\s*=\s*0)?\s*\{)");
+
+    int fileCounter = 1;
+
+    for (const auto& entry : fs::recursive_directory_iterator("./src")) {
+        if (entry.path().extension() == ".cpp" && entry.path().filename() != "main.cpp" && entry.path().filename() != "game_play.cpp") {
+            std::string fullFilename = entry.path().filename().string();
+            std::string filenameNoExt = fullFilename.substr(0, fullFilename.find_last_of('.'));
+            std::ifstream file(entry.path());
+
+            if (!file.is_open()) {
+                std::cerr << "Error: Unable to open file " << fullFilename << std::endl;
+                continue;
+            }
+
+            std::string fileContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+            std::sregex_iterator iter(fileContent.begin(), fileContent.end(), methodRegex);
+            std::sregex_iterator end;
+
+            int methodCounter = 1;
+            while (iter != end) {
+                std::smatch match = *iter;
+                std::string methodName = match[1].str();
+                std::string selector = std::to_string(fileCounter) + "." + std::to_string(methodCounter);
+                
+                methodsByFile[filenameNoExt].push_back({methodName, filenameNoExt, selector});
+                
+                methodCounter++;
+                ++iter;
+            }
+
+            if (methodCounter == 1) {
+                std::cout << "No methods found in file: " << filenameNoExt << std::endl;
+            }
+
+            fileCounter++;
+        }
+    }
+
+    // Sort methods within each file
+    for (auto& [_, methods] : methodsByFile) {
+        std::sort(methods.begin(), methods.end(), 
+                  [](const MethodInfo& a, const MethodInfo& b) {
+                      return a.name < b.name;
+                  });
+    }
+
+    return methodsByFile;
+}
+
+void displayMenu(const std::map<std::string, std::vector<MethodInfo>>& methodsByFile) {
     std::cout << "Cpp75 Practice Menu:\n";
-    std::cout << "push_front\n";
-    std::cout << "push_back\n";
+    std::cout << std::setw(20) << std::left << "File" << "Method\n";
+    std::cout << std::string(40, '-') << "\n";
+    
+    for (const auto& [filename, methods] : methodsByFile) {
+        std::cout << filename << "\n";
+        for (const auto& method : methods) {
+            std::cout << std::setw(4) << "" << std::setw(8) << std::left << method.selector 
+                      << method.name << "\n";
+        }
+        std::cout << "\n";  // Add a blank line between files for better readability
+    }
+    
     std::cout << "q. Quit\n";
     std::cout << "t. Run Tests and Exit\n";
-    std::cout << "Choose a method to implement, 'q' to quit or 't' to run tests and Exit\n";
-    return;
+    std::cout << "Choose a method to implement (e.g., 1.2), 'q' to quit or 't' to run tests and Exit\n";
 }
 
-std::string getMethodChoice(){
-    std::string choice = "";
-    std::cin >> choice;
-    
 
-    #pragma push_macro("max")
-    #undef max
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    #pragma pop_macro("max")
-
-    return choice;
+MethodInfo getMethodChoice(const std::map<std::string, std::vector<MethodInfo>>& methodsByFile) {
+    while (true) {
+        displayMenu(methodsByFile);
+        
+        std::string choice;
+        std::getline(std::cin, choice);
+        
+        if (choice == "q" || choice == "t") {
+            return {"", "", choice};
+        }
+        
+        for (const auto& [_, methods] : methodsByFile) {
+            auto it = std::find_if(methods.begin(), methods.end(),
+                                   [&choice](const MethodInfo& mi) { return mi.selector == choice; });
+            if (it != methods.end()) {
+                return *it;
+            }
+        }
+        
+        std::cout << "Invalid choice. Please try again.\n";
+    }
 }
+
 
 fs::path findFile(const std::string &filename){
     fs::path srcPath = "./src";
