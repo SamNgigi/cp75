@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <limits>
 #include <filesystem>
 #include <fstream>
 #include <regex>
@@ -47,14 +46,19 @@ void clearScreen(){
     return;
 }
 
-std::map<std::string, std::vector<MethodInfo>> getAvailableMethods() {
+std::map<std::string, std::vector<MethodInfo>> getAvailableMethods( const fs::path& src_path ) {
     std::map<std::string, std::vector<MethodInfo>> methodsByFile;
+    
+    if (!fs::exists(src_path) || !fs::is_directory(src_path)) {
+        std::cerr << "Error: The specified path does not exist or is not a directory: " << src_path << std::endl;
+        return methodsByFile;  // Return empty map
+    }
     
     std::regex methodRegex(R"((?:^|\n)\s*(?:virtual\s+)?(?:static\s+)?(?:inline\s+)?(?:explicit\s+)?(?:constexpr\s+)?(?:(?:const\s+)?(?:volatile\s+)?(?:\w+::)*\w+(?:\s*<[^>]*>)?(?:\s*\*|\s*&)?\s+)(?:\w+::)?(\w+)\s*\([^)]*\)(?:\s*const)?(?:\s*noexcept)?(?:\s*override)?(?:\s*final)?(?:\s*=\s*0)?\s*\{)");
 
     int fileCounter = 1;
 
-    for (const auto& entry : fs::recursive_directory_iterator("./src")) {
+    for (const auto& entry : fs::recursive_directory_iterator(src_path)) {
         if (entry.path().extension() == ".cpp" && entry.path().filename() != "main.cpp" && entry.path().filename() != "game_play.cpp") {
             std::string fullFilename = entry.path().filename().string();
             std::string filenameNoExt = fullFilename.substr(0, fullFilename.find_last_of('.'));
