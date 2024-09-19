@@ -53,8 +53,63 @@ std::map<std::string, std::vector<MethodInfo>> getAvailableMethods( const fs::pa
         std::cerr << "Error: The specified path does not exist or is not a directory: " << src_path << std::endl;
         return methodsByFile;  // Return empty map
     }
+   // Matches optional method specifiers like virtual, static, inline, etc 
+    const std::string specifiers = 
+        "(?:virtual\\s+)?"              // Optional 'virtual' keyword
+        "(?:static\\s+)?"               // Optional 'static' keyword
+        "(?:inline\\s+)?"               // Optional 'inline' keyword
+        "(?:explicit\\s+)?"             // Optional 'explicit' keyword
+        "(?:constexpr\\s+)?";           // Optional 'constexpr' keyword
+
+    // Matches the return type of the method
+    const std::string returnType = 
+        "(?:(?:const\\s+)?(?:volatile\\s+)?"    // Optional const and volatile qualifiers
+        "(?:\\w+::)*\\w+(?:\\s*<[^>]*>)?"       // Type name (possibly templated and/or nested)
+        "(?:\\s*\\*|\\s*&)?\\s+)";              // Optional pointer or reference
+
+    // Matches method name, capturing it in group 1
+    const std::string methodName = 
+        "(?:\\w+::)?(\\w+)";            // Optional class scope, then method name (captured)
+
+    const std::string parameters = 
+        "\\s*\\([^)]*\\)";              // Opening parenthesis, any characters except ')', closing parenthesis
+
+    // Matches optional method qualifiers that come after the parameter list
+    const std::string qualifiers = 
+        "(?:\\s*const)?"            // Optional 'const' qualifier 
+        "(?:\\s*noexcept)?"         // Optional 'noexcept'specifier 
+        "(?:\\s*override)?"         // Optional 'override'specifier 
+        "(?:\\s*final)?"            // Optional 'final'specifier 
+        "(?:\\s*=\\s*0)?";          // Optional pure virtual specifier (=0)
+
+    // Combines all parts into the full method regex
+    const std::string methodRegexStr = 
+        "(?:^|\\n)\\s*" +       // Start of line or newline, followed by optional whitespace 
+        specifiers + 
+        returnType + 
+        methodName + 
+        parameters + 
+        qualifiers + 
+        "\\s*\\{";              // Optional white space and opening brace
     
-    std::regex methodRegex(R"((?:^|\n)\s*(?:virtual\s+)?(?:static\s+)?(?:inline\s+)?(?:explicit\s+)?(?:constexpr\s+)?(?:(?:const\s+)?(?:volatile\s+)?(?:\w+::)*\w+(?:\s*<[^>]*>)?(?:\s*\*|\s*&)?\s+)(?:\w+::)?(\w+)\s*\([^)]*\)(?:\s*const)?(?:\s*noexcept)?(?:\s*override)?(?:\s*final)?(?:\s*=\s*0)?\s*\{)");
+    /* 
+     * This regex is designed to match C++ method declarations/definitions.
+     * It captures the method name in group 1.
+     * 
+     * It handles:
+     * - Various method specifiers (virtual, static, inline, explicit, constexpr)
+     * - Complex return types (including const, volatile, templated types)
+     * - Method names with optional class scope
+     * - Parameter lists
+     * - Trailing qualifiers (const, noexcept, override, final)
+     * - Pure virtual methods
+     * 
+     * The regex looks for these components followed by an opening brace,
+     * indicating the start of the method body.
+     * 
+     * */
+    // Compile the regex
+    std::regex methodRegex(methodRegexStr);
 
     int fileCounter = 1;
 
@@ -77,7 +132,8 @@ std::map<std::string, std::vector<MethodInfo>> getAvailableMethods( const fs::pa
             while (iter != end) {
                 std::smatch match = *iter;
                 std::string methodName = match[1].str();
-                std::string selector = std::to_string(fileCounter) + "." + std::to_string(methodCounter);
+                std::string methodNum = methodCounter < 10? "0" + std::to_string(methodCounter): std::to_string(methodCounter);
+                std::string selector = std::to_string(fileCounter) + "." + methodNum;
                 
                 methodsByFile[filenameNoExt].push_back({methodName, filenameNoExt, selector});
                 
@@ -97,7 +153,7 @@ std::map<std::string, std::vector<MethodInfo>> getAvailableMethods( const fs::pa
     for (auto& [_, methods] : methodsByFile) {
         std::sort(methods.begin(), methods.end(), 
                   [](const MethodInfo& a, const MethodInfo& b) {
-                      return a.name < b.name;
+                      return a.selector < b.selector;
                   });
     }
 
@@ -120,7 +176,7 @@ void displayMenu(const std::map<std::string, std::vector<MethodInfo>>& methodsBy
     
     std::cout << "q. Quit\n";
     std::cout << "t. Run Tests and Exit\n";
-    std::cout << "Choose a method to implement (e.g., 1.2), 'q' to quit or 't' to run tests and Exit\n";
+    std::cout << "Choose a method to implement (e.g., 1.02), 'q' to quit or 't' to run tests and Exit\n";
 }
 
 

@@ -140,8 +140,8 @@ TEST_F(GamePlayTests, GetAvailableMethodsNonExistentPath) {
 
 TEST_F(GamePlayTests, TestDisplayMenu) {
     std::map<std::string, std::vector<MethodInfo>> methodsByFile = {
-        {"file1", {{"method1", "file1", "1.1"}, {"method2", "file1", "1.2"}}},
-        {"file2", {{"method3", "file2", "2.1"}, {"method4", "file2", "2.2"}}}
+        {"file1", {{"method1", "file1", "1.01"}, {"method2", "file1", "1.02"}}},
+        {"file2", {{"method3", "file2", "2.01"}, {"method4", "file2", "2.02"}}}
     };
 
     // Redirect cout to capture the output
@@ -158,29 +158,29 @@ TEST_F(GamePlayTests, TestDisplayMenu) {
         "File                Method\n"
         "----------------------------------------\n"
         "file1\n"
-        "    1.1     method1\n"
-        "    1.2     method2\n"
+        "    1.01    method1\n"
+        "    1.02    method2\n"
         "\n"
         "file2\n"
-        "    2.1     method3\n"
-        "    2.2     method4\n"
+        "    2.01    method3\n"
+        "    2.02    method4\n"
         "\n"
         "q. Quit\n"
         "t. Run Tests and Exit\n"
-        "Choose a method to implement (e.g., 1.2), 'q' to quit or 't' to run tests and Exit\n";
+        "Choose a method to implement (e.g., 1.02), 'q' to quit or 't' to run tests and Exit\n";
 
     EXPECT_EQ(output.str(), expected_output);
 }
 
 TEST_F(GamePlayTests, TestGetMethodChoice) {
     std::map<std::string, std::vector<MethodInfo>> methodsByFile = {
-        {"file1", {{"method1", "file1", "1.1"}, {"method2", "file1", "1.2"}}},
-        {"file2", {{"method3", "file2", "2.1"}, {"method4", "file2", "2.2"}}}
+        {"file1", {{"method1", "file1", "1.01"}, {"method2", "file1", "1.02"}}},
+        {"file2", {{"method3", "file2", "2.01"}, {"method4", "file2", "2.02"}}}
     };
 
     // Test valid method choice
     {
-        std::stringstream input("1.2\n");
+        std::stringstream input("1.02\n");
         std::streambuf* old_cin = std::cin.rdbuf(input.rdbuf());
 
         MethodInfo result = getMethodChoice(methodsByFile);
@@ -189,7 +189,7 @@ TEST_F(GamePlayTests, TestGetMethodChoice) {
 
         EXPECT_EQ(result.name, "method2");
         EXPECT_EQ(result.filename, "file1");
-        EXPECT_EQ(result.selector, "1.2");
+        EXPECT_EQ(result.selector, "1.02");
     }
 
     // Test quit option
@@ -222,7 +222,7 @@ TEST_F(GamePlayTests, TestGetMethodChoice) {
 
     // Test invalid input followed by valid input
     {
-        std::stringstream input("invalid\n2.1\n");
+        std::stringstream input("invalid\n2.01\n");
         std::streambuf* old_cin = std::cin.rdbuf(input.rdbuf());
 
         MethodInfo result = getMethodChoice(methodsByFile);
@@ -231,7 +231,7 @@ TEST_F(GamePlayTests, TestGetMethodChoice) {
 
         EXPECT_EQ(result.name, "method3");
         EXPECT_EQ(result.filename, "file2");
-        EXPECT_EQ(result.selector, "2.1");
+        EXPECT_EQ(result.selector, "2.01");
     }
 }
 
